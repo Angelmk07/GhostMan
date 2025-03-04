@@ -13,20 +13,20 @@ public class Supporter : MonoBehaviour
         tilemap = GetComponent<Tilemap>();
     }
 
-    private void OnTriggerStay2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!IsSupportOn) return;
+        CanChange = true;
+        //Vector3 worldPos = collision.transform.position;
+        //Vector3Int tilePos = tilemap.WorldToCell(worldPos);
+        //Vector3 tileCenter = tilemap.GetCellCenterWorld(tilePos);
 
-        Vector3 worldPos = collision.transform.position;
-        Vector3Int tilePos = tilemap.WorldToCell(worldPos);
-        Vector3 tileCenter = tilemap.GetCellCenterWorld(tilePos);
+        //float threshold = 0.05f;
 
-        float threshold = 0.05f;
+        //bool inCenterX = Mathf.Abs(worldPos.x - tileCenter.x) < threshold;
+        //bool inCenterY = Mathf.Abs(worldPos.y - tileCenter.y) < threshold;
 
-        bool inCenterX = Mathf.Abs(worldPos.x - tileCenter.x) < threshold;
-        bool inCenterY = Mathf.Abs(worldPos.y - tileCenter.y) < threshold;
-
-        CanChange = inCenterX && inCenterY;
+        //CanChange = inCenterX && inCenterY;
     }
 
     private void OnTriggerExit2D(Collider2D collision)

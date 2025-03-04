@@ -19,8 +19,13 @@ public class EnemyMovement : MonoBehaviour
         if (IsBlocked(currentDirection))
         {
             ChangeDirection();
+            Debug.Log("ChangeDirection2");
         }
-        Move();
+        else
+        {
+            Move();
+        }
+
     }
 
     void Move()
@@ -55,5 +60,14 @@ public class EnemyMovement : MonoBehaviour
                 playerStat.TakeHit();
             }
         }
+        if(((1 << collision.gameObject.layer) & obstacleLayer) != 0)
+        {
+            ChangeDirection();
+            Debug.Log("ChangeDirection");
+        }
+    }
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawRay(gameObject.transform.position,currentDirection);
     }
 }

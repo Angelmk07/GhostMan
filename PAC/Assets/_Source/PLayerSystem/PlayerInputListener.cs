@@ -3,10 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
 using UnityEngine.Windows;
 
 public class PlayerInputListener : MonoBehaviour
 {
+    [SerializeField] private Tilemap tilemap;
     [SerializeField] private Vector2 moveInput = Vector2.zero;
     private PlayerStat _player;
     private Movment _movment;
@@ -20,7 +22,7 @@ public class PlayerInputListener : MonoBehaviour
     }
     private void OnEnable()
     {
-        _moveAction = new();
+        _moveAction = new ();
         _moveAction.Enable();
         _moveAction.InputMovment.MoveHorizontal.performed += OnMove;
         _moveAction.InputMovment.MoveVertical.performed += OnMove;
@@ -54,8 +56,11 @@ public class PlayerInputListener : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
+        Vector3 playerPosition = _player.playerObj.transform.position;
+        Vector3Int cellPosition = tilemap.WorldToCell(playerPosition);
+        Vector3 nearestTilePosition = tilemap.GetCellCenterWorld(cellPosition);
 
-        _movment.Move(_player.playerObj, _player.speed, -moveInput*3);
+        _player.playerObj.transform.position = nearestTilePosition;
         moveInput = Vector2.zero;
     }
 }
