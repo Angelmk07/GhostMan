@@ -7,12 +7,12 @@ public class ScoreView : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private TextMeshProUGUI bestScoreText;
-    private void UpdateScore(string st)
+    public void UpdateScore(int st)
     {
-        scoreText.text = "Score: " + st;
+        scoreText.text = $"Score: {st}";
     }
-    private void UpdateBestScore(string st)
+    public void UpdateBestScore(int st)
     {
-        bestScoreText.text = "Best Score: " + st;
+        bestScoreText.text = $"Best Score: {st}";
     }
 }

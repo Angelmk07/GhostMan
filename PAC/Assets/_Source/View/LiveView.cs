@@ -6,9 +6,10 @@ using UnityEngine.UI;
 
 public class LiveView : MonoBehaviour
 {
-    [SerializeField] private TextMeshProUGUI text;
-    private void UpdateInfo(string st)
+    [SerializeField] private GameObject[] lives;
+    public void LostLive()
     {
-        text.text = "Live: " + st;
+        if (lives.Length != 0)
+        Destroy(lives[lives.Length-1]);
     }
 }

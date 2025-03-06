@@ -24,8 +24,11 @@ public class PlayerInputListener : MonoBehaviour
     {
         _moveAction = new ();
         _moveAction.Enable();
+        _moveAction.InputMovment.MoveHorizontal.canceled += OnMove;
+        _moveAction.InputMovment.MoveVertical.canceled += OnMove;
         _moveAction.InputMovment.MoveHorizontal.performed += OnMove;
         _moveAction.InputMovment.MoveVertical.performed += OnMove;
+
     }
 
     private void OnMove(InputAction.CallbackContext context)

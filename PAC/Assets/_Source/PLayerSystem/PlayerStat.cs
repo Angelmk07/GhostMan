@@ -20,7 +20,7 @@ public class PlayerStat : MonoBehaviour
     public void TakeHit()
     {
         live--;
-        takehit.Invoke();
+        takehit?.Invoke();
     }
 }
 public enum PlayerDirection
