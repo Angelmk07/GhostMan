@@ -1,115 +1,81 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Tilemaps;
-using System.IO;
 
-public class MasterPath : MonoBehaviour
+public class TilemapPathfinder : MonoBehaviour
 {
-    public Tilemap tilemap; // Ссылка на Tilemap
-    public TileBase walkableTile; // Тайл, по которому можно ходить
-    private static int[][] moves = {
-        new int[] {1, 0}, new int[] {-1, 0}, // Вправо, влево
-        new int[] {0, 1}, new int[] {0, -1}, // Вверх, вниз
-        new int[] {1, 1}, new int[] {1, -1}, // Диагонали
-        new int[] {-1, 1}, new int[] {-1, -1}
-    };
+    public Tilemap tilemap;
+    public string saveFileName = "paths.json";
+    private Vector3Int startPosition;
+    private Dictionary<Vector3Int, List<List<Vector3Int>>> paths = new();
 
-    // Метод для поиска путей
-    public List<List<Vector3Int>> FindPaths(Vector3Int start, Vector3Int end)
+    void Start()
     {
-        Queue<List<Vector3Int>> queue = new Queue<List<Vector3Int>>();
-        List<List<Vector3Int>> paths = new List<List<Vector3Int>>();
-        HashSet<Vector3Int> visited = new HashSet<Vector3Int>();
+        startPosition = tilemap.WorldToCell(transform.position);
+        FindAllPaths();
+        SavePathsToJson();
+    }
 
-        queue.Enqueue(new List<Vector3Int> { start });
-        visited.Add(start);
-        int minSteps = int.MaxValue;
+    void FindAllPaths()
+    {
+        HashSet<Vector3Int> visited = new();
+        ExplorePaths(startPosition, new List<Vector3Int>(), visited);
+    }
 
-        while (queue.Count > 0)
+    void ExplorePaths(Vector3Int position, List<Vector3Int> currentPath, HashSet<Vector3Int> visited)
+    {
+        if (visited.Contains(position)) return;
+        if (tilemap.HasTile(position)) return;
+
+        currentPath.Add(position);
+        visited.Add(position);
+
+        if (!paths.ContainsKey(position))
         {
-            var path = queue.Dequeue();
-            var lastStep = path[path.Count - 1];
+            paths[position] = new List<List<Vector3Int>>();
+        }
+        paths[position].Add(new List<Vector3Int>(currentPath));
 
-            if (path.Count > minSteps)
-                continue;
+        List<Vector3Int> directions = new()
+        {
+            Vector3Int.up,
+            Vector3Int.down,
+            Vector3Int.left,
+            Vector3Int.right
+        };
 
-            if (lastStep == end)
+        List<Task> tasks = new();
+        foreach (var dir in directions)
+        {
+            Vector3Int nextPos = position + dir;
+            if (!tilemap.HasTile(nextPos))
             {
-                if (path.Count < minSteps)
-                {
-                    minSteps = path.Count;
-                    paths.Clear();
-                }
-                paths.Add(new List<Vector3Int>(path));
-                continue;
-            }
-
-            foreach (var move in moves)
-            {
-                Vector3Int newPos = lastStep + new Vector3Int(move[0], move[1], 0);
-
-                // Проверяем, что клетка доступна и не занята
-                if (IsCellWalkable(newPos) && !visited.Contains(newPos))
-                {
-                    var newPath = new List<Vector3Int>(path) { newPos };
-                    queue.Enqueue(newPath);
-                    visited.Add(newPos);
-                }
+                tasks.Add(Task.Run(() => ExplorePaths(nextPos, new List<Vector3Int>(currentPath), new HashSet<Vector3Int>(visited))));
             }
         }
-
-        return paths;
     }
 
-    // Проверка, доступна ли клетка для перемещения
-    private bool IsCellWalkable(Vector3Int cellPosition)
+    void SavePathsToJson()
     {
-        // Проверяем, есть ли тайл на клетке и является ли он walkableTile
-        return tilemap.GetTile(cellPosition) == walkableTile;
-    }
-
-    // Сохранение результата в JSON
-    private void SavePathsToJson(List<List<Vector3Int>> paths, string filePath)
-    {
-        PathData pathData = new PathData { paths = paths };
-        string json = JsonUtility.ToJson(pathData, true);
+        string filePath = Path.Combine(Application.persistentDataPath, saveFileName);
+        string json = JsonUtility.ToJson(new PathData { Paths = paths }, true);
         File.WriteAllText(filePath, json);
-        Debug.Log("Пути сохранены в " + filePath);
+        Debug.Log(Application.persistentDataPath);
     }
 
-    // Класс для сериализации данных
+    public Dictionary<Vector3Int, List<List<Vector3Int>>> LoadPathsFromJson()
+    {
+        string filePath = Path.Combine(Application.persistentDataPath, saveFileName);
+        if (!File.Exists(filePath)) return new Dictionary<Vector3Int, List<List<Vector3Int>>>();
+        string json = File.ReadAllText(filePath);
+        return JsonUtility.FromJson<PathData>(json).Paths;
+    }
+
     [System.Serializable]
-    private class PathData
+    public class PathData
     {
-        public List<List<Vector3Int>> paths;
-    }
-
-    // Пример использования
-    private void Start()
-    {
-        Vector3Int start = new Vector3Int(0, 0, 0); // Начальная позиция
-        Vector3Int end = new Vector3Int(3, 3, 0);   // Конечная позиция
-
-        var paths = FindPaths(start, end);
-
-        if (paths.Count > 0)
-        {
-            Debug.Log($"Найдено {paths.Count} кратчайших путей.");
-            foreach (var path in paths)
-            {
-                Debug.Log("Путь:");
-                foreach (var step in path)
-                {
-                    Debug.Log(step);
-                }
-            }
-
-            // Сохраняем пути в JSON
-            SavePathsToJson(paths, Application.dataPath + "/paths.json");
-        }
-        else
-        {
-            Debug.Log("Путь не найден.");
-        }
+        public Dictionary<Vector3Int, List<List<Vector3Int>>> Paths;
     }
 }

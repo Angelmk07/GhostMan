@@ -2,10 +2,10 @@ using UnityEngine;
 
 public class EnemyMovement : MonoBehaviour
 {
-    [SerializeField] private float speed = 2f;
+    [field:SerializeField] internal float speed { private set; get; } = 2f;
     [SerializeField] private float raycastDistance = 1f;
     [SerializeField] private LayerMask obstacleLayer;
-    [SerializeField] private LayerMask playerLayer;
+    [field: SerializeField] internal LayerMask playerLayer { private set; get; } 
     private Vector2[] directions = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
     private Vector2 currentDirection;
 
@@ -14,7 +14,7 @@ public class EnemyMovement : MonoBehaviour
         ChangeDirection();
     }
 
-    void Update()
+    internal void Update()
     {
         if (IsBlocked(currentDirection))
         {
@@ -32,7 +32,7 @@ public class EnemyMovement : MonoBehaviour
         transform.Translate(currentDirection * speed * Time.deltaTime);
     }
 
-    void ChangeDirection()
+    internal void ChangeDirection()
     {
         Vector2 newDirection;
         do
